@@ -1,4 +1,5 @@
-import {apply} from "./cabbages.ts"
+import {apply, fromAutomerge} from "./cabbages.ts"
+import type {Patch as AutomergePatch} from "@automerge/automerge-repo/slim"
 import test from "node:test"
 import assert from "node:assert"
 
@@ -192,6 +193,26 @@ test.test("patch", async t => {
 		apply(obj, ["text", 2, "type"], [0, 0], "paragraph")
 		assert.equal(obj.text[2], "\ufffc")
 		assert.equal(obj.text, "he\ufffcllo")
+	})
+
+	await t.test("doesn't mutate the automerge patch", t => {
+		let insert: AutomergePatch = {
+			action: "insert",
+			path: ["items", 0],
+			values: [{done: false}],
+		}
+		let put: AutomergePatch = {
+			action: "put",
+			path: ["meta"],
+			value: {tags: ["a"]},
+		}
+		let before = structuredClone([insert, put])
+		let obj = {}
+		apply(obj, ...fromAutomerge(insert))
+		apply(obj, ...fromAutomerge(put))
+		apply(obj, ["items", 0], "done", true)
+		apply(obj, ["meta", "tags"], [1, 1], ["b"])
+		assert.deepEqual([insert, put], before)
 	})
 
 	await t.test(

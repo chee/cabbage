@@ -275,13 +275,17 @@ export function fromAutomerge(
 				: [path, [key, key + (autopatch.length || 1)]]
 		}
 		case "insert": {
-			return [path, [key as number, key as number], autopatch.values]
+			return [
+				path,
+				[key as number, key as number],
+				structuredClone(autopatch.values),
+			]
 		}
 		case "splice": {
 			return [path, [key as number, key as number], [autopatch.value]]
 		}
 		case "put": {
-			return [path, key!, autopatch.value]
+			return [path, key!, structuredClone(autopatch.value)]
 		}
 	}
 }
